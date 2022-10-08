@@ -10,6 +10,7 @@ int16_t aX, aY, aZ; //raw acceleration values from the MPU
 float gX, gY, gZ; //adjusted values from the raw MPU input
 Servo servo;
 float angle;
+int gimbalDir = 90; //hard set value for testing will be from serial instead
 
 void setup() {
   mpuConfig();
@@ -22,7 +23,7 @@ void loop() {
   getAccel();
   printData();
   angle = atan2(gY,gX) / PI * 180;
-  servo.write(angle);
+  servo.write(gimbalDir - angle);
   delay(200);
 }
 
