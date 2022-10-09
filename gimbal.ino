@@ -3,16 +3,18 @@
 
 int MPU = 0x68; //MPU address
 int accelAdd = 0x3B; //acceleration register address
-int pwrAdd = 0x1C; //power management register address
+int accelConfig = 0x1C; //acceleration configuration address
+int pwrMGMT = 0x6B; //power management register address
 int servPort = 10; //the arduino digital pin for the servo
 float accelSens = 16384.0; //the sensitivity chosen for the acceleration
 int16_t aX, aY, aZ; //raw acceleration values from the MPU
 float gX, gY, gZ; //adjusted values from the raw MPU input
 Servo servo;
-float angle;
-int gimbalDir;
+float angle; // angle of the MPU
+int gimbalDir; // angle of the servo arm
 
 void setup() {
+  pinMode(13,OUTPUT);
   mpuConfig();
   servo.attach(servPort);
   Serial.begin(9600);
@@ -24,20 +26,21 @@ void loop() {
   getAccel();
   printData();
   angle = atan2(gY,gX) / PI * 180;
-  servo.write(gimbalDir - angle);
   getAngle();
+  warningLights(gimbalDir - angle);
+  servo.write(gimbalDir - angle);
   while (Serial.read() > 0) {} //remove the bytes left in the buffer
-  delay(200);
+  delay(300);
 }
 
 
 void mpuConfig() {
   Wire.beginTransmission(MPU); 
-  Wire.write(0x6B); 
+  Wire.write(pwrMGMT); 
   Wire.write(0b00000000); //set all the bits for pwr to 0 to wake mpu
   Wire.endTransmission();  
   Wire.beginTransmission(MPU); 
-  Wire.write(pwrAdd); 
+  Wire.write(accelConfig); 
   Wire.write(0b00000000); //set all the bits for accel to 0 for 2g range
   Wire.endTransmission(); 
 }
@@ -50,7 +53,7 @@ void getAccel() {
 
   /*reads the first 8 bits 
     shift it by 8 bits 
-    then use logical or to fill the bottom 8 bits
+    then use bit or to fill the bottom 8 bits
   */
 
   aX = Wire.read() << 8 | Wire.read(); 
@@ -81,4 +84,14 @@ void getAngle() {
 
   if (gimbalDir > 180) 
     gimbalDir = 180;
+}
+
+//will use digital pin 13 to turn on led light if too close to either 0 or 180
+void warningLights(int angle) {
+  if (180 - angle <= 10 || angle <= 10) {
+    digitalWrite(13,HIGH);
+  }
+  else {
+    digitalWrite(13,LOW);
+  }
 }

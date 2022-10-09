@@ -1,1 +1,2 @@
 # Trial-Project
+This is the SJSU 2020 robotics controls trial project. The project goal is to create a single-axis gimbal using an Arduino, the MPU6050, and servo(s). With this particular implementation of the project, the servo will *only* be operational from 0-180 degrees. This is because this project uses the SG90 servo, which can only turn 0-180 degrees.
