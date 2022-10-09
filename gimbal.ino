@@ -22,7 +22,7 @@ void setup() {
 
 void loop() {
   getAccel();
-  //printData();
+  printData();
   angle = atan2(gY,gX) / PI * 180;
   servo.write(gimbalDir - angle);
   getAngle();
