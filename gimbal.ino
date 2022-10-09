@@ -10,20 +10,23 @@ int16_t aX, aY, aZ; //raw acceleration values from the MPU
 float gX, gY, gZ; //adjusted values from the raw MPU input
 Servo servo;
 float angle;
-int gimbalDir = 90; //hard set value for testing will be from serial instead
+int gimbalDir;
 
 void setup() {
   mpuConfig();
   servo.attach(servPort);
   Serial.begin(9600);
+  gimbalDir = 90;
 
 }
 
 void loop() {
   getAccel();
-  printData();
+  //printData();
   angle = atan2(gY,gX) / PI * 180;
   servo.write(gimbalDir - angle);
+  getAngle();
+  while (Serial.read() > 0) {} //remove the bytes left in the buffer
   delay(200);
 }
 
@@ -65,4 +68,17 @@ void printData() {
   Serial.print(gY);
   Serial.print("| Z accel: ");
   Serial.println(gZ);
+}
+
+
+void getAngle() {
+  if (Serial.available() > 0) { //0 only works for no line ending
+    gimbalDir = Serial.parseFloat(SKIP_NONE); //skip none so whitespace fails as well
+  }
+  
+  if (gimbalDir < 0)
+    gimbalDir = 0;
+
+  if (gimbalDir > 180) 
+    gimbalDir = 180;
 }
